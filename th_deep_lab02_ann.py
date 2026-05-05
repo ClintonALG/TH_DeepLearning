@@ -67,6 +67,9 @@ prediction = model.predict(X_test)
 print(f"Dự đoán ảnh đầu tiên là số: {np.argmax(prediction[0])}")
 print(f"Thực tế là số: {y_test[0]}")
 
+# 7. Lưu Model
+model.save('image_classifier.h5')
+
 #bài2
 
 # 1. Tải bộ dữ liệu MNIST
@@ -89,6 +92,9 @@ model_mnist = Sequential([
 # 3. Biên dịch và huấn luyện
 model_mnist.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 model_mnist.fit(X_train_mn, y_train_mn, epochs=10, validation_split=0.1, batch_size=32)
+
+# 4. Lưu Model
+model.save('image_classifier_02.h5')
 
 #bài3
 
@@ -169,6 +175,9 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y
 loss, acc = model.evaluate(X_test, y_test)
 print(f"\nĐộ chính xác trên tập Test: {acc*100:.2f}%")
 
+# 4. Lưu Model
+model.save('cat_dog_model.h5')
+
 #bài4
 
 # Tải bộ dữ liệu Adult từ kho lưu trữ UCI
@@ -203,6 +212,9 @@ model_adult = Sequential([
 model_adult.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 model_adult.fit(X_train_ad, y_train_ad, epochs=20, batch_size=32, validation_split=0.1)
 
+#Lưu model:
+model.save('income_model.h5')
+
 #bài5
 
 # Tải bộ dữ liệu Car từ kho lưu trữ UCI
@@ -231,3 +243,95 @@ model_car = Sequential([
 
 model_car.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 model_car.fit(X_train_car, y_train_car, epochs=30, batch_size=16)
+
+#Lưu model
+model.save('car_model.h5')
+
+#bài6 sử dụng model bài 5
+
+import os
+import numpy as np
+import tensorflow as tf
+from flask import Flask, render_template, request
+from google.colab.output import eval_js
+
+# =================================================================
+# 1. TẠO GIAO DIỆN HTML (Bổ sung đủ 6 ô nhập liệu)
+# =================================================================
+os.makedirs('templates', exist_ok=True)
+with open('templates/index.html', 'w') as f:
+    f.write('''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>HUIT - ANN Web Deployment</title>
+        <style>
+            body { font-family: Arial; text-align: center; background: #f0f2f5; padding: 20px; }
+            .container { background: white; display: inline-block; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; }
+            input { display: block; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+            button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+            .result { margin-top: 20px; color: #d9534f; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Dự báo chất lượng xe (HUIT)</h2>
+            <form action="/predict" method="post">
+                <input type="number" name="f1" placeholder="Giá mua (buying): 0-3" required>
+                <input type="number" name="f2" placeholder="Bảo trì (maint): 0-3" required>
+                <input type="number" name="f3" placeholder="Số cửa (doors): 2-5" required>
+                <input type="number" name="f4" placeholder="Sức chứa (persons): 2, 4 hoặc 6" required>
+                <input type="number" name="f5" placeholder="Thùng xe (lug_boot): 0-2" required>
+                <input type="number" name="f6" placeholder="An toàn (safety): 0-2" required>
+                <button type="submit">Dự báo</button>
+            </form>
+            <div class="result">{{ prediction_text }}</div>
+        </div>
+    </body>
+    </html>
+    ''')
+
+# =================================================================
+# 2. FLASK BACKEND (Xử lý 6 tham số đầu vào)
+# =================================================================
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Kiểm tra file mô hình trước khi nạp
+        if not os.path.exists('car_model.h5'):
+            return render_template('index.html', prediction_text="Lỗi: Không tìm thấy file car_model.h5")
+
+        # Nạp mô hình
+        model = tf.keras.models.load_model('car_model.h5')
+
+        # Thu thập đủ 6 giá trị từ Form[cite: 3]
+        data = [float(x) for x in request.form.values()]
+
+        # Chuyển đổi về dạng tensor (1, 6) để khớp với Layer dense_12[cite: 3]
+        final_input = np.array(data).reshape(1, 6)
+
+        # Dự báo[cite: 3]
+        pred = model.predict(final_input)
+        labels = ["Không tốt (unacc)", "Chấp nhận được (acc)", "Tốt (good)", "Rất tốt (vgood)"]
+        result = labels[np.argmax(pred)]
+
+        return render_template('index.html', prediction_text=f'Kết quả dự báo: {result}')
+    except Exception as e:
+        return render_template('index.html', prediction_text=f'Lỗi hệ thống: {str(e)}')
+
+# =================================================================
+# 3. CHẠY SERVER[cite: 3]
+# =================================================================
+# Dùng proxyPort để mở cổng trên Google Colab
+proxy_url = eval_js("google.colab.kernel.proxyPort(5000)")
+print(f"--- TRUY CẬP WEBSITE TẠI ĐÂY: {proxy_url} ---")
+
+if __name__ == '__main__':
+    app.run(port=5000)
