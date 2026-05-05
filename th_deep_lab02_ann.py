@@ -30,39 +30,39 @@ X_test = X_test.astype('float32') / 255.0
 # 2. XÂY DỰNG KIẾN TRÚC ANN
 # Một mô hình ANN gồm các tầng Fully Connected (Dense)
 model = Sequential([
-    # Input Layer: Duỗi ảnh 28x28 thành vector 784 phần tử[cite: 3]
+    # Input Layer: Duỗi ảnh 28x28 thành vector 784 phần tử
     Flatten(input_shape=(28, 28)),
 
-    # Hidden Layer 1: 256 neuron, dùng ReLU để học mẫu phi tuyến tính[cite: 3]
+    # Hidden Layer 1: 256 neuron, dùng ReLU để học mẫu phi tuyến tính
     Dense(256, activation='relu', kernel_initializer='uniform'),
 
-    # Dropout: Ngẫu nhiên gán vài weight bằng 0 (rate 0.2) để tránh Overfitting[cite: 3]
+    # Dropout: Ngẫu nhiên gán vài weight bằng 0 (rate 0.2) để tránh Overfitting
     Dropout(0.2),
 
     # Hidden Layer 2: 128 neuron
     Dense(128, activation='relu', kernel_initializer='uniform'),
 
     # Output Layer: 10 neuron cho 10 chữ số (0-9).
-    # Dùng Softmax để tính xác suất cho các label đầu ra[cite: 3].
+    # Dùng Softmax để tính xác suất cho các label đầu ra
     Dense(10, activation='softmax')
 ])
 
 # 3. BIÊN DỊCH MÔ HÌNH[cite: 3]
-# Loss function: sparse_categorical_crossentropy (đo lường hiệu quả học)[cite: 3]
-# Optimizer: adam (cải tiến quá trình học bằng cách cập nhật weight)[cite: 3]
+# Loss function: sparse_categorical_crossentropy (đo lường hiệu quả học)
+# Optimizer: adam (cải tiến quá trình học bằng cách cập nhật weight)
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-# 4. HUẤN LUYỆN (Training)[cite: 3]
+# 4. HUẤN LUYỆN (Training)
 print("Bắt đầu huấn luyện...")
 history = model.fit(X_train, y_train, validation_split=0.1, epochs=10, batch_size=32)
 
-# 5. ĐÁNH GIÁ (Evaluation)[cite: 3]
+# 5. ĐÁNH GIÁ (Evaluation)
 loss, acc = model.evaluate(X_test, y_test)
 print(f"\nĐộ chính xác trên tập Test: {acc*100:.2f}%")
 
-# 6. DỰ BÁO ẢNH MỚI[cite: 3]
+# 6. DỰ BÁO ẢNH MỚI
 prediction = model.predict(X_test)
 print(f"Dự đoán ảnh đầu tiên là số: {np.argmax(prediction[0])}")
 print(f"Thực tế là số: {y_test[0]}")
@@ -137,41 +137,41 @@ for image, label in dataset:
 photos = asarray(photos)
 labels = asarray(labels)
 
-# Lưu trữ dữ liệu để sử dụng sau này[cite: 3]
+# Lưu trữ dữ liệu để sử dụng sau này
 save('dogs_vs_cats_photos.npy', photos)
 save('dogs_vs_cats_labels.npy', labels)
 print(f"Đã lưu file .npy thành công. Kích thước: {photos.shape}")
 
 # =================================================================
-# 3. HUẤN LUYỆN MẠNG ANN[cite: 3]
+# 3. HUẤN LUYỆN MẠNG ANN
 # =================================================================
-# Nạp lại dữ liệu từ file .npy[cite: 3]
-X = load('dogs_vs_cats_photos.npy').astype('float32') / 255.0 # Chuẩn hóa pixel[cite: 3]
+# Nạp lại dữ liệu từ file .npy
+X = load('dogs_vs_cats_photos.npy').astype('float32') / 255.0 # Chuẩn hóa pixel
 y = load('dogs_vs_cats_labels.npy')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Xây dựng kiến trúc Layer: Input -> Hidden -> Output[cite: 3]
+# Xây dựng kiến trúc Layer: Input -> Hidden -> Output
 model = Sequential([
-    Flatten(input_shape=(200, 200, 3)), # Tầng Input duỗi ảnh thành vector[cite: 3]
+    Flatten(input_shape=(200, 200, 3)), # Tầng Input duỗi ảnh thành vector
 
-    # Tầng Hidden dùng ReLU (gán 0 cho các giá trị âm)[cite: 3]
+    # Tầng Hidden dùng ReLU (gán 0 cho các giá trị âm)
     Dense(128, activation='relu', kernel_initializer='uniform'),
-    Dropout(0.5), # Kỹ thuật Dropout để ngăn chặn Overfitting[cite: 3]
+    Dropout(0.5), # Kỹ thuật Dropout để ngăn chặn Overfitting
 
     Dense(64, activation='relu', kernel_initializer='uniform'),
 
-    # Tầng Output dùng Sigmoid cho bài toán phân loại nhị phân[cite: 3]
+    # Tầng Output dùng Sigmoid cho bài toán phân loại nhị phân
     Dense(1, activation='sigmoid')
 ])
 
-# Biên dịch mô hình[cite: 3]
+# Biên dịch mô hình
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 print("--- Bắt đầu huấn luyện mạng ANN ---")
 model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
 
-# Đánh giá hiệu quả (Loss function)[cite: 3]
+# Đánh giá hiệu quả (Loss function)
 loss, acc = model.evaluate(X_test, y_test)
 print(f"\nĐộ chính xác trên tập Test: {acc*100:.2f}%")
 
@@ -196,7 +196,7 @@ for col in df_adult.columns:
 X_adult = df_adult.iloc[:, :-1].values
 y_adult = df_adult.iloc[:, -1].values
 
-# Feature Scaling bằng MinMaxScaler[cite: 3]
+# Feature Scaling bằng MinMaxScaler
 scaler = MinMaxScaler()
 X_adult = scaler.fit_transform(X_adult)
 
@@ -238,7 +238,7 @@ X_train_car, X_test_car, y_train_car, y_test_car = train_test_split(X_car, y_car
 model_car = Sequential([
     Dense(64, activation='relu', input_dim=X_train_car.shape[1]),
     Dense(32, activation='relu'),
-    Dense(num_classes, activation='softmax') # Dùng Softmax cho đa phân lớp[cite: 3]
+    Dense(num_classes, activation='softmax') # Dùng Softmax cho đa phân lớp
 ])
 
 model_car.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -311,13 +311,13 @@ def predict():
         # Nạp mô hình
         model = tf.keras.models.load_model('car_model.h5')
 
-        # Thu thập đủ 6 giá trị từ Form[cite: 3]
+        # Thu thập đủ 6 giá trị từ Form
         data = [float(x) for x in request.form.values()]
 
-        # Chuyển đổi về dạng tensor (1, 6) để khớp với Layer dense_12[cite: 3]
+        # Chuyển đổi về dạng tensor (1, 6) để khớp với Layer dense_12
         final_input = np.array(data).reshape(1, 6)
 
-        # Dự báo[cite: 3]
+        # Dự báo
         pred = model.predict(final_input)
         labels = ["Không tốt (unacc)", "Chấp nhận được (acc)", "Tốt (good)", "Rất tốt (vgood)"]
         result = labels[np.argmax(pred)]
@@ -327,7 +327,7 @@ def predict():
         return render_template('index.html', prediction_text=f'Lỗi hệ thống: {str(e)}')
 
 # =================================================================
-# 3. CHẠY SERVER[cite: 3]
+# 3. CHẠY SERVER 
 # =================================================================
 # Dùng proxyPort để mở cổng trên Google Colab
 proxy_url = eval_js("google.colab.kernel.proxyPort(5000)")
